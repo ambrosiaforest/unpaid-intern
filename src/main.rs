@@ -1,72 +1,42 @@
-use std::env;
+use poise::serenity_prelude as serenity;
 
-use serenity::async_trait;
-use serenity::model::channel::Message;
-use serenity::prelude::*;
+struct Data {} // User data, which is stored and accessible in all command invocations
+type Error = Box<dyn std::error::Error + Send + Sync>;
+type Context<'a> = poise::Context<'a, Data, Error>;
 
-struct Handler;
-
-#[async_trait]
-impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "$ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "faggot").await {
-                println!("Error sending message: {why:?}");
-            }
-        }
-        if msg.content.contains("$say") {
-            if let Err(why) = msg.channel_id.say(&ctx.http, msg.content.to_string().replace("$say", "")).await {
-                println!("Error sending message: {why:?}");
-            }
-        }
-    }
-/*
-    async fn ready(&self, ctx: Context, ready: Ready) {
-       info!("{} is connected!", ready.user.name);
-       
-       let guild_id = GuildId();
-       
-       // add "/hello" command to the bot
-       GuildId::set_application_commands(&guild_id, &ctx.http, |commands| {
-           commands.create_application_command(|command| { command.name("hello").description("Say hello") })
-       }).await.unwrap();
-    } */
-/*
-    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-       // check if the interaction is a command
-       if let Interaction::ApplicationCommand(command) = interaction {
-
-           let response_content =
-               match command.data.name.as_str() {
-                   "hello" => "hello".to_owned(),
-                   command => unreachable!("Unknown command: {}", command),
-               };
-           // send `response_content` to the discord server
-           command.create_interaction_response(&ctx.http, |response| {
-               response
-                   .kind(InteractionResponseType::ChannelMessageWithSource)
-                   .interaction_response_data(|message| message.content(response_content))
-           })
-               .await.expect("Cannot respond to slash command");
-       }
-   } */
+#[poise::command(slash_command, prefix_command)]
+async fn age(
+    ctx: Context<'_>,
+    #[description = "Selected user"] user: Option<serenity::User>,
+) -> Result<(), Error> {
+    let u = user.as_ref().unwrap_or_else(|| ctx.author());
+    let response = format!("{}'s account was created at {}", u.name, u.created_at());
+    ctx.say(response).await?;
+    Ok(())
 }
 
 #[tokio::main]
 async fn main() {
-    // Login with a bot token from the environment
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
-    // Set gateway intents, which decides what events the bot will be notified about
-    let intents = GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT;
+    let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
+    let intents = serenity::GatewayIntents::non_privileged();
 
-    // Create a new instance of the Client, logging in as a bot.
-    let mut client =
-        Client::builder(&token, intents).event_handler(Handler).await.expect("Err creating client");
+    let framework = poise::Framework::builder()
+        .options(poise::FrameworkOptions {
+            commands: vec![age()],
+            ..Default::default()
+        })
+        .setup(|ctx, _ready, framework| {
+            Box::pin(async move {
+                poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+                Ok(Data {})
+            })
+        })
+        .build();
 
-    // Start listening for events by starting a single shard
-    if let Err(why) = client.start().await {
-        println!("Client error: {why:?}");
-    }
+    let client = serenity::ClientBuilder::new(token, intents)
+        .framework(framework)
+        .await;
+    client.unwrap().start().await.unwrap();
 }
+
+
