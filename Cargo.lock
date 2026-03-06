@@ -1568,14 +1568,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 
 [[package]]
-name = "slave-bot"
-version = "0.1.0"
-dependencies = [
- "poise",
- "tokio",
-]
-
-[[package]]
 name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2010,6 +2002,14 @@ name = "unicode-xid"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
+
+[[package]]
+name = "unpaid-intern"
+version = "0.1.0"
+dependencies = [
+ "poise",
+ "tokio",
+]
 
 [[package]]
 name = "untrusted"

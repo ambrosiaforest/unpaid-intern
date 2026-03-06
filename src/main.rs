@@ -15,6 +15,17 @@ async fn age(
     Ok(())
 }
 
+#[poise::command(slash_command, prefix_command)]
+async fn say(
+    ctx: Context<'_>,
+    #[description = "text to say"] text: String,
+) -> Result<(), Error> {
+    let response = format!("{}", text);
+    ctx.say(response).await?;
+    Ok(())
+}
+
+
 #[tokio::main]
 async fn main() {
     let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
@@ -22,7 +33,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age()],
+            commands: vec![age(), say()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
@@ -38,5 +49,3 @@ async fn main() {
         .await;
     client.unwrap().start().await.unwrap();
 }
-
-
