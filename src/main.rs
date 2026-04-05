@@ -30,13 +30,13 @@ async fn say(
 async fn jorkit(
     ctx: Context<'_>,
 ) -> Result<(), Error> {
-    let number = rand::random_range(0..2);
-    let mut response = String::new();
-    if number == 1 {
-        response = format!("https://tenor.com/hu6bIuxX2f4.gif");
-    } else {
-        response = format!("https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true");
-    }
+    let response: String = match rand::random_range(0..4) {
+        0 => "https://tenor.com/hu6bIuxX2f4.gif".to_string(),
+        1 => "https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true".to_string(),
+        2 => "https://cdn.discordapp.com/attachments/1336182573214334986/1419170851311587488/IMG_2838.gif".to_string(),
+        3 => "https://media.discordapp.net/attachments/1343399089412374539/1475040324358373547/NNvEX54tL51dCeICkPb1nuUhqCtJashBkeZYS_sUxdA.gif".to_string(),
+        _ => "faggot".to_string()
+    };
 
     ctx.say(response).await?;
     Ok(())
