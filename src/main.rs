@@ -1,4 +1,5 @@
 use poise::serenity_prelude as serenity;
+use rand::prelude::*;
 
 struct Data {} // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -25,6 +26,21 @@ async fn say(
     Ok(())
 }
 
+#[poise::command(slash_command, prefix_command)]
+async fn jorkit(
+    ctx: Context<'_>,
+) -> Result<(), Error> {
+    let number = rand::random_range(0..2);
+    let mut response = String::new();
+    if number == 1 {
+        response = format!("https://tenor.com/hu6bIuxX2f4.gif");
+    } else {
+        response = format!("https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true");
+    }
+
+    ctx.say(response).await?;
+    Ok(())
+}
 
 #[tokio::main]
 async fn main() {
@@ -33,7 +49,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age(), say()],
+            commands: vec![age(), say(), jorkit()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
