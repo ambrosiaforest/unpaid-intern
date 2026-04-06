@@ -1,9 +1,61 @@
 use poise::serenity_prelude as serenity;
 use rand::prelude::*;
 
+use dotenv;
+
 struct Data {} // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
+
+#[poise::command(prefix_command, slash_command, subcommands("coin"))]
+pub async fn gamble(
+    ctx: Context<'_>,
+    arg: String
+) -> Result<(), Error> {
+    Ok(())
+}
+
+#[poise::command(prefix_command, slash_command)]
+pub async fn coin(
+    ctx: Context<'_>, 
+    #[description = "Bet"] bet: u32,
+    #[description = "Call"] call: String
+) -> Result<(), Error> {
+    let flip = rand::random_range(0..2);
+
+    let calln = match call.to_lowercase().as_str() {
+        "heads" => 1,
+        "tails" => 0,
+        _ => -1
+    };
+
+    let reply = if calln == flip {
+        poise::CreateReply::default()
+            .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
+            .embed(serenity::CreateEmbed::new()
+                .title("——Result——")
+                .description(format!("Won: ${}", bet*2))
+            )
+    } else if calln == -1 {
+        poise::CreateReply::default()
+            //.content(format!("{} bet ${} on {}", ctx.author(), bet, call))
+            .embed(serenity::CreateEmbed::new()
+                .title("❌Invalid❌")
+                .description("Call must be heads or tails")
+            )
+            .ephemeral(true)
+    } else {
+        poise::CreateReply::default()
+            .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
+            .embed(serenity::CreateEmbed::new()
+                .title("—Result—")
+                .description("Lost it all")
+            )
+    };
+
+    ctx.send(reply).await?;
+    Ok(())
+}
 
 #[poise::command(slash_command, prefix_command)]
 async fn age(
@@ -44,12 +96,18 @@ async fn jorkit(
 
 #[tokio::main]
 async fn main() {
-    let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
+    //let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
+    let token = dotenv::var("DISCORD_TOKEN").unwrap();
     let intents = serenity::GatewayIntents::non_privileged();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age(), say(), jorkit()],
+            commands: vec![
+                age(),
+                say(),
+                jorkit(),
+                gamble()
+            ],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
