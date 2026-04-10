@@ -1,22 +1,15 @@
 use poise::serenity_prelude as serenity;
-use rand::prelude::*;
+
+use rand;
 
 use dotenv;
 
-struct Data {} // User data, which is stored and accessible in all command invocations
+struct Data {}
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
-#[poise::command(prefix_command, slash_command, subcommands("coin"))]
-pub async fn gamble(
-    ctx: Context<'_>,
-    arg: String
-) -> Result<(), Error> {
-    Ok(())
-}
-
 #[poise::command(prefix_command, slash_command)]
-pub async fn coin(
+pub async fn cointoss(
     ctx: Context<'_>, 
     #[description = "Bet"] bet: u32,
     #[description = "Call"] call: String
@@ -38,7 +31,6 @@ pub async fn coin(
             )
     } else if calln == -1 {
         poise::CreateReply::default()
-            //.content(format!("{} bet ${} on {}", ctx.author(), bet, call))
             .embed(serenity::CreateEmbed::new()
                 .title("❌Invalid❌")
                 .description("Call must be heads or tails")
@@ -57,6 +49,8 @@ pub async fn coin(
     Ok(())
 }
 
+
+
 #[poise::command(slash_command, prefix_command)]
 async fn age(
     ctx: Context<'_>,
@@ -73,8 +67,8 @@ async fn say(
     ctx: Context<'_>,
     #[description = "text to say"] text: String,
 ) -> Result<(), Error> {
-    let response = format!("{}", text);
-    ctx.say(response).await?;
+
+    ctx.say(text).await?;
     Ok(())
 }
 
@@ -83,10 +77,11 @@ async fn jorkit(
     ctx: Context<'_>,
 ) -> Result<(), Error> {
     let response: String = match rand::random_range(0..4) {
-        0 => "https://tenor.com/hu6bIuxX2f4.gif".to_string(),
+        0 => "https://tenor.com/view/invincible-variant-tracksuit-mark-invincible-edit-invincible-gif-16907687914240760559".to_string(),
         1 => "https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true".to_string(),
         2 => "https://cdn.discordapp.com/attachments/1336182573214334986/1419170851311587488/IMG_2838.gif".to_string(),
         3 => "https://media.discordapp.net/attachments/1343399089412374539/1475040324358373547/NNvEX54tL51dCeICkPb1nuUhqCtJashBkeZYS_sUxdA.gif".to_string(),
+		4 => "https://giphy.com/gifs/invincible-ichi39-variants-MPDOGLMCXtQNdQR7SE".to_string(),
         _ => "faggot".to_string()
     };
 
@@ -96,7 +91,6 @@ async fn jorkit(
 
 #[tokio::main]
 async fn main() {
-    //let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
     let token = dotenv::var("DISCORD_TOKEN").unwrap();
     let intents = serenity::GatewayIntents::non_privileged();
 
@@ -106,7 +100,7 @@ async fn main() {
                 age(),
                 say(),
                 jorkit(),
-                gamble()
+                cointoss()
             ],
             ..Default::default()
         })
