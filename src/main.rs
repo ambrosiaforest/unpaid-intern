@@ -76,7 +76,7 @@ async fn say(
 async fn jorkit(
     ctx: Context<'_>,
 ) -> Result<(), Error> {
-    let response: String = match rand::random_range(0..4) {
+    let response: String = match rand::random_range(0..5) {
         0 => "https://tenor.com/view/invincible-variant-tracksuit-mark-invincible-edit-invincible-gif-16907687914240760559".to_string(),
         1 => "https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true".to_string(),
         2 => "https://cdn.discordapp.com/attachments/1336182573214334986/1419170851311587488/IMG_2838.gif".to_string(),
