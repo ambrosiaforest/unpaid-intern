@@ -68,7 +68,17 @@ async fn say(
     #[description = "text to say"] text: String,
 ) -> Result<(), Error> {
 
-    ctx.say(text).await?;
+    let http = ctx.serenity_context().http.clone();
+    let channel_id = ctx.channel_id();
+
+    let builder = serenity::CreateMessage::new().content(text);
+    let _ = channel_id.send_message(&http, builder).await;
+
+    ctx.send(poise::CreateReply::default()
+        .content("Message sent successfully!")
+        .ephemeral(true)
+    ).await?;
+
     Ok(())
 }
 
