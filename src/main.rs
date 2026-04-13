@@ -49,8 +49,6 @@ pub async fn cointoss(
     Ok(())
 }
 
-
-
 #[poise::command(slash_command, prefix_command)]
 async fn age(
     ctx: Context<'_>,
@@ -122,8 +120,12 @@ async fn main() {
         })
         .build();
 
+    let activity = serenity::ActivityData::custom("jorkin it");
+
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
+        .activity(activity)
         .await;
+
     client.unwrap().start().await.unwrap();
 }
