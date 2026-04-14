@@ -4,30 +4,63 @@ use rand;
 
 use dotenv;
 
+mod db;
+
 struct Data {}
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[poise::command(prefix_command, slash_command)]
+pub async fn balance(
+    ctx: Context<'_>
+) -> Result<(), Error> {
+    let user = ctx.author().id.to_string();
+
+    let balance = match db::get_balance(&user) {
+        Ok(Some(b)) => b,
+        Ok(None) => { let _ = db::insert_user(&user, 2000); 2000 },
+        Err(_) => 0,
+    };
+
+    ctx.say(format!("Balance: ${}", balance)).await?;
+    
+    Ok(())
+}
+
+#[poise::command(prefix_command, slash_command)]
 pub async fn cointoss(
     ctx: Context<'_>, 
-    #[description = "Bet"] bet: u32,
+    #[description = "Bet"] bet: i32,
     #[description = "Call"] call: String
 ) -> Result<(), Error> {
     let flip = rand::random_range(0..2);
-
+    let user = ctx.author().id.to_string();
     let calln = match call.to_lowercase().as_str() {
         "heads" => 1,
         "tails" => 0,
         _ => -1
     };
 
+    let balance = match db::get_balance(&user) {
+        Ok(Some(b)) => b,
+        Ok(None) => { let _ = db::insert_user(&user, 2000); 2000 },
+        Err(_) => 0,
+    };
+
+    let mut winnings = 0;
+
+    if balance < bet {
+        ctx.say("Insufficent funds").await?;
+        return Ok(());
+    }
+
     let reply = if calln == flip {
+        winnings += bet * 2;
         poise::CreateReply::default()
             .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
             .embed(serenity::CreateEmbed::new()
                 .title("——Result——")
-                .description(format!("Won: ${}", bet*2))
+                .description(format!("Won: ${}", winnings))
             )
     } else if calln == -1 {
         poise::CreateReply::default()
@@ -37,6 +70,7 @@ pub async fn cointoss(
             )
             .ephemeral(true)
     } else {
+        winnings -= bet;
         poise::CreateReply::default()
             .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
             .embed(serenity::CreateEmbed::new()
@@ -44,6 +78,8 @@ pub async fn cointoss(
                 .description("Lost it all")
             )
     };
+
+    let _ = db::set_balance(&user, balance + winnings)?;
 
     ctx.send(reply).await?;
     Ok(())
@@ -56,6 +92,7 @@ async fn age(
 ) -> Result<(), Error> {
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
     let response = format!("{}'s account was created at {}", u.name, u.created_at());
+
     ctx.say(response).await?;
     Ok(())
 }
@@ -108,6 +145,7 @@ async fn main() {
                 age(),
                 say(),
                 jorkit(),
+                balance(),
                 cointoss()
             ],
             ..Default::default()
@@ -119,6 +157,17 @@ async fn main() {
             })
         })
         .build();
+    let _ = db::create_database();
+
+    //db::insert_user("123456789", 500);
+    //println!("Users in database:");
+    let _ = db::query_users();
+
+    if let Ok(Some(balance)) = db::get_balance("123456789") {
+        println!("Balance: {}", balance);
+    } else {
+        println!("User not found");
+    }
 
     let activity = serenity::ActivityData::custom("jorkin it");
 
