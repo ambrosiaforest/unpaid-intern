@@ -1,7 +1,6 @@
 use poise::serenity_prelude as serenity;
-
+use std::time::Instant;
 use rand;
-
 use dotenv;
 
 mod db;
@@ -86,6 +85,23 @@ pub async fn cointoss(
 }
 
 #[poise::command(slash_command, prefix_command)]
+async fn ping(
+    ctx: Context<'_>
+) -> Result<(), Error> {
+    let start = Instant::now();
+
+    ctx.defer().await?;
+    
+    let latency_ms = start.elapsed().as_millis();
+
+    ctx.say(format!("Pong! Bot response time: {} ms", latency_ms)).await?;
+    let builder = EditMessage::new().content(format!("Pong! Bot response time: {} ms", latency_ms));
+    message.edit(ctx, builder).await?;
+
+    Ok(())
+}
+
+#[poise::command(slash_command, prefix_command)]
 async fn age(
     ctx: Context<'_>,
     #[description = "Selected user"] user: Option<serenity::User>,
@@ -93,7 +109,6 @@ async fn age(
     let u = user.as_ref().unwrap_or_else(|| ctx.author());
     let response = format!("{}'s account was created at {}", u.name, u.created_at());
 
-    ctx.say(response).await?;
     Ok(())
 }
 
@@ -143,6 +158,7 @@ async fn main() {
         .options(poise::FrameworkOptions {
             commands: vec![
                 age(),
+                ping(),
                 say(),
                 jorkit(),
                 balance(),
@@ -157,17 +173,10 @@ async fn main() {
             })
         })
         .build();
+
     let _ = db::create_database();
 
-    //db::insert_user("123456789", 500);
-    //println!("Users in database:");
     let _ = db::query_users();
-
-    if let Ok(Some(balance)) = db::get_balance("123456789") {
-        println!("Balance: {}", balance);
-    } else {
-        println!("User not found");
-    }
 
     let activity = serenity::ActivityData::custom("jorkin it");
 
