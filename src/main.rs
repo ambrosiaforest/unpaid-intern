@@ -95,8 +95,6 @@ async fn ping(
     let latency_ms = start.elapsed().as_millis();
 
     ctx.say(format!("Pong! Bot response time: {} ms", latency_ms)).await?;
-    let builder = EditMessage::new().content(format!("Pong! Bot response time: {} ms", latency_ms));
-    message.edit(ctx, builder).await?;
 
     Ok(())
 }
