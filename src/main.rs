@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-use poise::serenity_prelude as serenity;
-=======
 use dotenv;
 use poise::CreateReply;
 use poise::serenity_prelude as serenity;
 use rand;
 use serenity::CreateEmbed;
->>>>>>> 17e9b3b (refactored some old code)
 use std::time::Instant;
 use unpaid_intern::{create_database, get_balance, insert_user, query_users, set_balance};
 
@@ -17,14 +13,11 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[poise::command(prefix_command, slash_command)]
 pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id.to_string();
+    let name = ctx.author().name.to_string();
 
-<<<<<<< HEAD
-    let balance = match db::get_balance(&user) {
-=======
     let http = ctx.serenity_context().http.clone();
 
     let balance = match get_balance(&user) {
->>>>>>> 17e9b3b (refactored some old code)
         Ok(Some(b)) => b,
         Ok(None) => {
             let _ = insert_user(&user, 2000);
@@ -33,32 +26,27 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
         Err(_) => 0,
     };
 
-<<<<<<< HEAD
-    ctx.say(format!("Balance: ${}", balance)).await?;
-    
-=======
-    let name = ctx.author().name.to_string();
+    let title = format!("{name}'s Balance");
+    let description = format!("${balance}");
 
-    let embed = CreateEmbed::new()
-        .title(format!("{name}'s balance"))
-        .description(format!("${balance}"));
+    let embed = CreateEmbed::new().title(title).description(description);
 
     let builder = CreateReply::default().embed(embed);
 
     ctx.send(builder).await?;
 
->>>>>>> 17e9b3b (refactored some old code)
     Ok(())
 }
 
 #[poise::command(prefix_command, slash_command)]
 pub async fn cointoss(
-    ctx: Context<'_>, 
+    ctx: Context<'_>,
     #[description = "Bet"] bet: i32,
     #[description = "Call"] call: String,
 ) -> Result<(), Error> {
     let flip = rand::random_range(0..2);
     let user = ctx.author().id.to_string();
+
     let name = ctx.author().name.to_string();
 
     let calln = match call.to_lowercase().as_str() {
@@ -83,34 +71,6 @@ pub async fn cointoss(
         return Ok(());
     }
 
-<<<<<<< HEAD
-    let reply = if calln == flip {
-        winnings += bet * 2;
-        poise::CreateReply::default()
-            .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
-            .embed(serenity::CreateEmbed::new()
-                .title("——Result——")
-                .description(format!("Won: ${}", winnings))
-            )
-    } else if calln == -1 {
-        poise::CreateReply::default()
-            .embed(serenity::CreateEmbed::new()
-                .title("❌Invalid❌")
-                .description("Call must be heads or tails")
-            )
-            .ephemeral(true)
-    } else {
-        winnings -= bet;
-        poise::CreateReply::default()
-            .content(format!("{} bet ${} on {}", ctx.author(), bet, call))
-            .embed(serenity::CreateEmbed::new()
-                .title("—Result—")
-                .description("Lost it all")
-            )
-    };
-
-    let _ = db::set_balance(&user, balance + winnings)?;
-=======
     let mut title = String::new();
     let mut description = String::new();
 
@@ -131,7 +91,6 @@ pub async fn cointoss(
     let builder = CreateReply::default().embed(embed);
 
     let _ = set_balance(&user, balance + winnings)?;
->>>>>>> 17e9b3b (refactored some old code)
 
     ctx.send(reply).await?;
     Ok(())
@@ -142,17 +101,11 @@ async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     let start = Instant::now();
 
     ctx.defer().await?;
-    
+
     let latency_ms = start.elapsed().as_millis();
 
-<<<<<<< HEAD
-    ctx.say(format!("Pong! Bot response time: {} ms", latency_ms)).await?;
-    let builder = EditMessage::new().content(format!("Pong! Bot response time: {} ms", latency_ms));
-    message.edit(ctx, builder).await?;
-=======
     ctx.say(format!("Pong! Bot response time: {} ms", latency_ms))
         .await?;
->>>>>>> 17e9b3b (refactored some old code)
 
     Ok(())
 }
