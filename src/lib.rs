@@ -1,5 +1,4 @@
-use rusqlite::{Row, params, Connection, Result, OptionalExtension};
-use crate::Error;
+use rusqlite::{Connection, OptionalExtension, Result, Row, params};
 
 #[derive(Debug)]
 struct User {
@@ -8,7 +7,7 @@ struct User {
     balance: i32,
 }
 
-pub fn create_database() -> Result<(), Error> {
+pub fn create_database() -> Result<()> {
     // Connect to SQLite database (creates the file if it doesn't exist)
     let conn = Connection::open("app_database.db")?;
 
@@ -26,7 +25,7 @@ pub fn create_database() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn insert_user(user: &str, balance: i32) -> Result<(), Error> {
+pub fn insert_user(user: &str, balance: i32) -> Result<()> {
     let conn = Connection::open("app_database.db")?;
 
     // Insert a new user
@@ -39,7 +38,7 @@ pub fn insert_user(user: &str, balance: i32) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn query_users() -> Result<(), Error> {
+pub fn query_users() -> Result<()> {
     let conn = Connection::open("app_database.db")?;
 
     // Retrieve data from users table
@@ -60,18 +59,18 @@ pub fn query_users() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_balance(user: &str) -> Result<Option<i32>, Error> {
+pub fn get_balance(user: &str) -> Result<Option<i32>> {
     let conn = Connection::open("app_database.db")?;
 
     let mut stmt = conn.prepare("SELECT balance FROM balances WHERE user = ?1 LIMIT 1")?;
-    let balance_opt = stmt.query_row(params![user], |row: &Row| row.get::<_, i32>(0))
+    let balance_opt = stmt
+        .query_row(params![user], |row: &Row| row.get::<_, i32>(0))
         .optional()?;
 
     Ok(balance_opt)
-
 }
 
-pub fn set_balance(user: &str, new_balance: i32) -> Result<(), Error> {
+pub fn set_balance(user: &str, new_balance: i32) -> Result<()> {
     let conn = Connection::open("app_database.db")?;
 
     conn.execute(
