@@ -15,8 +15,6 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id.to_string();
     let name = ctx.author().name.to_string();
 
-    let http = ctx.serenity_context().http.clone();
-
     let balance = match get_balance(&user) {
         Ok(Some(b)) => b,
         Ok(None) => {
@@ -71,20 +69,20 @@ pub async fn cointoss(
         return Ok(());
     }
 
-    let mut title = String::new();
-    let mut description = String::new();
-
-    if calln == flip {
+    let (title, description) = if calln == flip {
         winnings += bet;
-        title = format!("{} bet ${bet} on {call}", name);
-        description = format!("### —Result—\nWon: ${}", winnings);
+        let title = format!("{} bet ${bet} on {call}", name);
+        let description = format!("### —Result—\nWon: ${}", winnings);
+        (title, description)
     } else if calln == -1 {
-        title = format!("{} bet ${} on {}", name, bet, call);
-        description = "### ❌Invalid❌\nCall must be heads or tails".to_string();
+        let title = format!("{} bet ${} on {}", name, bet, call);
+        let description = "### ❌Invalid❌\nCall must be heads or tails".to_string();
+        (title, description)
     } else {
         winnings -= bet;
-        title = format!("{} bet ${} on {}", name, bet, call);
-        description = "### —Result—\nLost it all".to_string();
+        let title = format!("{} bet ${} on {}", name, bet, call);
+        let description = "### —Result—\nLost it all".to_string();
+        (title, description)
     };
 
     let embed = CreateEmbed::new().title(title).description(description);
@@ -92,7 +90,7 @@ pub async fn cointoss(
 
     let _ = set_balance(&user, balance + winnings)?;
 
-    ctx.send(reply).await?;
+    ctx.send(builder).await?;
     Ok(())
 }
 
@@ -143,14 +141,15 @@ async fn say(ctx: Context<'_>, #[description = "text to say"] text: String) -> R
 
 #[poise::command(slash_command, prefix_command)]
 async fn jorkit(ctx: Context<'_>) -> Result<(), Error> {
-    let response: String = match rand::random_range(0..5) {
-        0 => "https://tenor.com/view/invincible-variant-tracksuit-mark-invincible-edit-invincible-gif-16907687914240760559".to_string(),
-        1 => "https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true".to_string(),
-        2 => "https://cdn.discordapp.com/attachments/1336182573214334986/1419170851311587488/IMG_2838.gif".to_string(),
-        3 => "https://media.discordapp.net/attachments/1343399089412374539/1475040324358373547/NNvEX54tL51dCeICkPb1nuUhqCtJashBkeZYS_sUxdA.gif".to_string(),
-		4 => "https://giphy.com/gifs/invincible-ichi39-variants-MPDOGLMCXtQNdQR7SE".to_string(),
-        _ => String::new(),
-    };
+    let responses = [
+        "https://tenor.com/view/invincible-variant-tracksuit-mark-invincible-edit-invincible-gif-16907687914240760559",
+        "https://cdn.discordapp.com/emojis/1485862202224283759.webp?size=240&animated=true",
+        "https://cdn.discordapp.com/attachments/1336182573214334986/1419170851311587488/IMG_2838.gif",
+        "https://media.discordapp.net/attachments/1343399089412374539/1475040324358373547/NNvEX54tL51dCeICkPb1nuUhqCtJashBkeZYS_sUxdA.gif",
+        "https://giphy.com/gifs/invincible-ichi39-variants-MPDOGLMCXtQNdQR7SE",
+    ];
+
+    let response = responses[rand::random_range(0..responses.len())];
 
     ctx.say(response).await?;
     Ok(())
