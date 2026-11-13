@@ -71,16 +71,16 @@ pub async fn cointoss(
 
     let (title, description) = if calln == flip {
         winnings += bet;
-        let title = format!("{} bet ${bet} on {call}", name);
-        let description = format!("### —Result—\nWon: ${}", winnings);
+        let title = format!("{name} bet ${bet} on {call}");
+        let description = format!("### —Result—\nWon: ${winnings}");
         (title, description)
     } else if calln == -1 {
-        let title = format!("{} bet ${} on {}", name, bet, call);
+        let title = format!("{name} bet ${bet} on {call}");
         let description = "### ❌Invalid❌\nCall must be heads or tails".to_string();
         (title, description)
     } else {
         winnings -= bet;
-        let title = format!("{} bet ${} on {}", name, bet, call);
+        let title = format!("{name} bet ${bet} on {call}");
         let description = "### —Result—\nLost it all".to_string();
         (title, description)
     };
